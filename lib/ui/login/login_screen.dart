@@ -4,7 +4,7 @@ import 'login_view_model.dart';
 class LoginScreen extends StatefulWidget {
   // Agora recebe o viewModel conforme convenção
   final LoginViewModel viewModel;
-  const LoginScreen({Key? key, required this.viewModel}) : super(key: key);
+  const LoginScreen({super.key, required this.viewModel});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -80,12 +80,12 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showSignUpDialog() {
-    final _signupFormKey = GlobalKey<FormState>();
-    final _nameCtr = TextEditingController();
-    final _emailCtr = TextEditingController();
-    final _passwordCtr = TextEditingController();
-    final _confirmCtr = TextEditingController();
-    bool _obscureSignup = true;
+    final signupFormKey = GlobalKey<FormState>();
+    final nameCtr = TextEditingController();
+    final emailCtr = TextEditingController();
+    final passwordCtr = TextEditingController();
+    final confirmCtr = TextEditingController();
+    bool obscureSignup = true;
 
     showDialog(
       context: context,
@@ -95,17 +95,17 @@ class _LoginScreenState extends State<LoginScreen> {
             title: const Text('Cadastrar usuário'),
             content: SingleChildScrollView(
               child: Form(
-                key: _signupFormKey,
+                key: signupFormKey,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     TextFormField(
-                      controller: _nameCtr,
+                      controller: nameCtr,
                       decoration: const InputDecoration(labelText: 'Nome'),
                       validator: (v) => (v ?? '').trim().isEmpty ? 'Informe o nome' : null,
                     ),
                     TextFormField(
-                      controller: _emailCtr,
+                      controller: emailCtr,
                       decoration: const InputDecoration(labelText: 'E-mail'),
                       keyboardType: TextInputType.emailAddress,
                       validator: (v) {
@@ -116,22 +116,22 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
                     TextFormField(
-                      controller: _passwordCtr,
+                      controller: passwordCtr,
                       decoration: InputDecoration(
                         labelText: 'Senha',
                         suffixIcon: IconButton(
-                          icon: Icon(_obscureSignup ? Icons.visibility_off : Icons.visibility),
-                          onPressed: () => setStateDialog(() => _obscureSignup = !_obscureSignup),
+                          icon: Icon(obscureSignup ? Icons.visibility_off : Icons.visibility),
+                          onPressed: () => setStateDialog(() => obscureSignup = !obscureSignup),
                         ),
                       ),
-                      obscureText: _obscureSignup,
+                      obscureText: obscureSignup,
                       validator: (v) => (v ?? '').length < 6 ? 'Senha mínima 6 caracteres' : null,
                     ),
                     TextFormField(
-                      controller: _confirmCtr,
+                      controller: confirmCtr,
                       decoration: const InputDecoration(labelText: 'Confirmar senha'),
-                      obscureText: _obscureSignup,
-                      validator: (v) => v != _passwordCtr.text ? 'Senhas não coincidem' : null,
+                      obscureText: obscureSignup,
+                      validator: (v) => v != passwordCtr.text ? 'Senhas não coincidem' : null,
                     ),
                   ],
                 ),
@@ -141,11 +141,11 @@ class _LoginScreenState extends State<LoginScreen> {
               TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancelar')),
               ElevatedButton(
                 onPressed: () {
-                  if (_signupFormKey.currentState!.validate()) {
+                  if (signupFormKey.currentState!.validate()) {
                     // Preenche o ViewModel e executa o Command
-                    widget.viewModel.name = _nameCtr.text.trim();
-                    widget.viewModel.email = _emailCtr.text.trim();
-                    widget.viewModel.password = _passwordCtr.text;
+                    widget.viewModel.name = nameCtr.text.trim();
+                    widget.viewModel.email = emailCtr.text.trim();
+                    widget.viewModel.password = passwordCtr.text;
                     widget.viewModel.signUpCommand.execute();
                   }
                 },
@@ -159,16 +159,16 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showForgotPasswordDialog() {
-    final _emailResetCtr = TextEditingController();
-    final _formResetKey = GlobalKey<FormState>();
+    final emailResetCtr = TextEditingController();
+    final formResetKey = GlobalKey<FormState>();
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Recuperar senha'),
         content: Form(
-          key: _formResetKey,
+          key: formResetKey,
           child: TextFormField(
-            controller: _emailResetCtr,
+            controller: emailResetCtr,
             decoration: const InputDecoration(labelText: 'E-mail'),
             validator: (v) {
               final s = (v ?? '').trim();
@@ -182,8 +182,8 @@ class _LoginScreenState extends State<LoginScreen> {
           TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancelar')),
           ElevatedButton(
             onPressed: () {
-              if (!_formResetKey.currentState!.validate()) return;
-              widget.viewModel.email = _emailResetCtr.text.trim();
+              if (!formResetKey.currentState!.validate()) return;
+              widget.viewModel.email = emailResetCtr.text.trim();
               widget.viewModel.resetPasswordCommand.execute();
             },
             child: const Text('Enviar'),
