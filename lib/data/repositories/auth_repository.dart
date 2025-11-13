@@ -1,9 +1,12 @@
+import 'package:flutter/foundation.dart';
+
 import '../../utils/result.dart';
 import '../../domain/models/user_model.dart';
 import '../../domain/models/session_model.dart';
 
 /// Abstração para autenticação. Implementações podem usar Supabase, mocks, etc.
-abstract class AuthRepository {
+/// Estende [ChangeNotifier] para permitir redirecionamento automático no GoRouter.
+abstract class AuthRepository extends ChangeNotifier {
   /// Autentica um usuário com email e password.
   Future<Result<void>> signIn({required String email, required String password});
 

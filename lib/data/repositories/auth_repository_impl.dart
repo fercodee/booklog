@@ -7,7 +7,7 @@ import '../services/api/supabase_client.dart';
 import '../../utils/result.dart';
 import 'auth_repository.dart';
 
-class SupabaseAuthRepository implements AuthRepository {
+class SupabaseAuthRepository extends AuthRepository {
   SupabaseAuthRepository({SupabaseClientService? clientService}) : _service = clientService ?? SupabaseClientService();
 
   final SupabaseClientService _service;
@@ -16,11 +16,12 @@ class SupabaseAuthRepository implements AuthRepository {
   @override
   Future<Result<void>> signIn({required String email, required String password}) async {
     try {
-  final res = await _service.signInWithPassword(email: email, password: password);
-  final session = res.session;
+      final res = await _service.signInWithPassword(email: email, password: password);
+      final session = res.session;
       if (session == null) {
         return Result.error(Exception('Sign in failed: no session returned'));
       }
+      notifyListeners();
       return const Result.ok(null);
     } on AuthException catch (e, st) {
       _log.warning('signIn failed', e, st);
@@ -66,7 +67,8 @@ class SupabaseAuthRepository implements AuthRepository {
   @override
   Future<Result<void>> signOut() async {
     try {
-  await _service.signOut();
+      await _service.signOut();
+      notifyListeners();
       return const Result.ok(null);
     } on AuthException catch (e, st) {
       _log.warning('signOut failed', e, st);
