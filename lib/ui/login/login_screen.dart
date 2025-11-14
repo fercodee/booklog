@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../routing/routes.dart';
+import '../../ui/core/colors.dart';
 import 'login_view_model.dart';
 
 class LoginScreen extends StatefulWidget {
-  // Agora recebe o viewModel conforme convenção
-  final LoginViewModel viewModel;
   const LoginScreen({super.key, required this.viewModel});
+
+  final LoginViewModel viewModel;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -14,14 +18,13 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailCtr = TextEditingController();
   final _passwordCtr = TextEditingController();
-  bool _obscure = true;
+  bool _obscurePassword = true;
 
   @override
   void initState() {
     super.initState();
     // Adiciona listeners aos Commands do ViewModel
     widget.viewModel.signInCommand.addListener(_onSignIn);
-    widget.viewModel.signUpCommand.addListener(_onSignUp);
     widget.viewModel.resetPasswordCommand.addListener(_onResetPassword);
   }
 
@@ -29,39 +32,31 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     // Remove listeners e limpa controllers
     widget.viewModel.signInCommand.removeListener(_onSignIn);
-    widget.viewModel.signUpCommand.removeListener(_onSignUp);
     widget.viewModel.resetPasswordCommand.removeListener(_onResetPassword);
     _emailCtr.dispose();
     _passwordCtr.dispose();
     super.dispose();
   }
 
-  // Callbacks dos listeners — reagem ao estado dos Commands
+  // Callbacks dos listeners
   void _onSignIn() {
     final cmd = widget.viewModel.signInCommand;
     if (cmd.error) {
+      final errorMsg = (cmd.result as dynamic).error?.toString() ?? 'Erro ao fazer login';
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erro ao logar')),
+        SnackBar(
+          content: Text(errorMsg),
+          backgroundColor: AppColors.error,
+        ),
       );
     } else if (cmd.completed) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login realizado com sucesso')),
+        const SnackBar(
+          content: Text('Login realizado com sucesso!'),
+          backgroundColor: AppColors.success,
+        ),
       );
-      // TODO: navegar para a tela principal após login
-    }
-  }
-
-  void _onSignUp() {
-    final cmd = widget.viewModel.signUpCommand;
-    if (cmd.error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erro ao cadastrar')),
-      );
-    } else if (cmd.completed) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cadastro realizado com sucesso')),
-      );
-      Navigator.of(context).pop(); // fecha o diálogo de cadastro
+      // Redirecionamento é feito automaticamente pelo GoRouter
     }
   }
 
@@ -69,206 +64,258 @@ class _LoginScreenState extends State<LoginScreen> {
     final cmd = widget.viewModel.resetPasswordCommand;
     if (cmd.error) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erro ao enviar e-mail de recuperação')),
+        SnackBar(
+          content: Text((cmd.result as dynamic).error?.toString() ?? 'Erro ao recuperar senha'),
+          backgroundColor: AppColors.error,
+        ),
       );
     } else if (cmd.completed) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('E-mail de recuperação enviado')),
+        const SnackBar(
+          content: Text('E-mail de recuperação enviado com sucesso!'),
+          backgroundColor: AppColors.success,
+        ),
       );
-      Navigator.of(context).pop(); // fecha o diálogo de recuperação
+      if (mounted) Navigator.of(context).pop();
     }
   }
 
-  void _showSignUpDialog() {
-    final signupFormKey = GlobalKey<FormState>();
-    final nameCtr = TextEditingController();
-    final emailCtr = TextEditingController();
-    final passwordCtr = TextEditingController();
-    final confirmCtr = TextEditingController();
-    bool obscureSignup = true;
-
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return StatefulBuilder(builder: (ctx, setStateDialog) {
-          return AlertDialog(
-            title: const Text('Cadastrar usuário'),
-            content: SingleChildScrollView(
-              child: Form(
-                key: signupFormKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextFormField(
-                      controller: nameCtr,
-                      decoration: const InputDecoration(labelText: 'Nome'),
-                      validator: (v) => (v ?? '').trim().isEmpty ? 'Informe o nome' : null,
-                    ),
-                    TextFormField(
-                      controller: emailCtr,
-                      decoration: const InputDecoration(labelText: 'E-mail'),
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (v) {
-                        final s = (v ?? '').trim();
-                        if (s.isEmpty) return 'Informe o e-mail';
-                        if (!s.contains('@')) return 'E-mail inválido';
-                        return null;
-                      },
-                    ),
-                    TextFormField(
-                      controller: passwordCtr,
-                      decoration: InputDecoration(
-                        labelText: 'Senha',
-                        suffixIcon: IconButton(
-                          icon: Icon(obscureSignup ? Icons.visibility_off : Icons.visibility),
-                          onPressed: () => setStateDialog(() => obscureSignup = !obscureSignup),
-                        ),
-                      ),
-                      obscureText: obscureSignup,
-                      validator: (v) => (v ?? '').length < 6 ? 'Senha mínima 6 caracteres' : null,
-                    ),
-                    TextFormField(
-                      controller: confirmCtr,
-                      decoration: const InputDecoration(labelText: 'Confirmar senha'),
-                      obscureText: obscureSignup,
-                      validator: (v) => v != passwordCtr.text ? 'Senhas não coincidem' : null,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            actions: [
-              TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancelar')),
-              ElevatedButton(
-                onPressed: () {
-                  if (signupFormKey.currentState!.validate()) {
-                    // Preenche o ViewModel e executa o Command
-                    widget.viewModel.name = nameCtr.text.trim();
-                    widget.viewModel.email = emailCtr.text.trim();
-                    widget.viewModel.password = passwordCtr.text;
-                    widget.viewModel.signUpCommand.execute();
-                  }
-                },
-                child: const Text('Cadastrar'),
-              ),
-            ],
-          );
-        });
-      },
-    );
+  void _handleSignIn() {
+    if (_formKey.currentState?.validate() ?? false) {
+      widget.viewModel.email = _emailCtr.text;
+      widget.viewModel.password = _passwordCtr.text;
+      widget.viewModel.signInCommand.execute();
+    }
   }
 
-  void _showForgotPasswordDialog() {
-    final emailResetCtr = TextEditingController();
-    final formResetKey = GlobalKey<FormState>();
+  void _showResetPasswordDialog() {
+    final resetFormKey = GlobalKey<FormState>();
+    final emailCtr = TextEditingController();
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Recuperar senha'),
-        content: Form(
-          key: formResetKey,
-          child: TextFormField(
-            controller: emailResetCtr,
-            decoration: const InputDecoration(labelText: 'E-mail'),
-            validator: (v) {
-              final s = (v ?? '').trim();
-              if (s.isEmpty) return 'Informe o e-mail';
-              if (!s.contains('@')) return 'E-mail inválido';
-              return null;
-            },
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Recuperar Senha'),
+          content: Form(
+            key: resetFormKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: emailCtr,
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: const Icon(Icons.email, color: AppColors.primary),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Email é obrigatório';
+                    }
+                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                      return 'Email inválido';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
           ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancelar')),
-          ElevatedButton(
-            onPressed: () {
-              if (!formResetKey.currentState!.validate()) return;
-              widget.viewModel.email = emailResetCtr.text.trim();
-              widget.viewModel.resetPasswordCommand.execute();
-            },
-            child: const Text('Enviar'),
-          ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (resetFormKey.currentState?.validate() ?? false) {
+                  widget.viewModel.email = emailCtr.text;
+                  widget.viewModel.resetPasswordCommand.execute();
+                  Navigator.of(dialogContext).pop();
+                }
+              },
+              child: const Text('Enviar'),
+            ),
+          ],
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Card(
-            elevation: 4,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextFormField(
-                      controller: _emailCtr,
-                      decoration: const InputDecoration(labelText: 'E-mail'),
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (v) {
-                        final s = (v ?? '').trim();
-                        if (s.isEmpty) return 'Informe o e-mail';
-                        if (!s.contains('@')) return 'E-mail inválido';
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _passwordCtr,
-                      decoration: InputDecoration(
-                        labelText: 'Senha',
-                        suffixIcon: IconButton(
-                          icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
-                          onPressed: () => setState(() => _obscure = !_obscure),
-                        ),
-                      ),
-                      obscureText: _obscure,
-                      validator: (v) => (v ?? '').isEmpty ? 'Informe a senha' : null,
-                    ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      child: AnimatedBuilder(
-                        // Observa o ViewModel para atualizar o estado do botão
-                        animation: widget.viewModel,
-                        builder: (context, _) {
-                          final running = widget.viewModel.signInCommand.running;
-                          return ElevatedButton(
-                            onPressed: running
-                                ? null
-                                : () {
-                                    if (!_formKey.currentState!.validate()) return;
-                                    widget.viewModel.email = _emailCtr.text.trim();
-                                    widget.viewModel.password = _passwordCtr.text;
-                                    widget.viewModel.signInCommand.execute();
-                                  },
-                            child: running
-                                ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                                : const Text('Entrar'),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        TextButton(onPressed: _showSignUpDialog, child: const Text('Cadastrar')),
-                        TextButton(onPressed: _showForgotPasswordDialog, child: const Text('Esqueci minha senha')),
-                      ],
-                    ),
-                  ],
+      appBar: AppBar(
+        title: const Text('Book Log'),
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Header
+              const SizedBox(height: 32),
+              const Icon(
+                Icons.library_books,
+                size: 64,
+                color: AppColors.primary,
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Bem-vindo',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
                 ),
               ),
-            ),
+              const SizedBox(height: 8),
+              const Text(
+                'Faça login para continuar',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 40),
+
+              // Campo Email
+              TextFormField(
+                controller: _emailCtr,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  hintText: 'seu.email@exemplo.com',
+                  prefixIcon: const Icon(Icons.email, color: AppColors.primary),
+                ),
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Email é obrigatório';
+                  }
+                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                    return 'Email inválido';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Campo Senha
+              TextFormField(
+                controller: _passwordCtr,
+                decoration: InputDecoration(
+                  labelText: 'Senha',
+                  hintText: 'Sua senha',
+                  prefixIcon: const Icon(Icons.lock, color: AppColors.primary),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                      color: AppColors.primary,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  ),
+                ),
+                obscureText: _obscurePassword,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Senha é obrigatória';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 8),
+
+              // Link para recuperar senha
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: _showResetPasswordDialog,
+                  child: const Text('Esqueceu a senha?'),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Botão de Login
+              ElevatedButton.icon(
+                onPressed: widget.viewModel.signInCommand.running
+                    ? null
+                    : _handleSignIn,
+                icon: widget.viewModel.signInCommand.running
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.textOnPrimary,
+                          ),
+                        ),
+                      )
+                    : const Icon(Icons.login),
+                label: Text(
+                  widget.viewModel.signInCommand.running
+                      ? 'Entrando...'
+                      : 'Entrar',
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Divisor
+              Row(
+                children: [
+                  const Expanded(child: Divider(color: AppColors.border)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'ou',
+                      style: TextStyle(
+                        color: AppColors.gray500,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  const Expanded(child: Divider(color: AppColors.border)),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Link para Cadastro
+              OutlinedButton.icon(
+                onPressed: () => context.push(Routes.signup),
+                icon: const Icon(Icons.person_add),
+                label: const Text(
+                  'Criar nova conta',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Texto adicional
+              Center(
+                child: Text(
+                  'Não tem uma conta? Clique em "Criar nova conta"',
+                  style: TextStyle(
+                    color: AppColors.gray500,
+                    fontSize: 12,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
           ),
         ),
       ),

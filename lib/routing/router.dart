@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../data/repositories/auth_repository.dart';
+import '../data/repositories/auth/auth_repository.dart';
 import '../../ui/login/login_screen.dart';
 import '../../ui/login/login_view_model.dart';
+import '../../ui/signup/signup_screen.dart';
+import '../../ui/signup/signup_view_model.dart';
 import 'routes.dart';
 
 /// Top go_router entry point.
@@ -22,6 +24,16 @@ GoRouter router(AuthRepository authRepository) => GoRouter(
           builder: (context, state) {
             return LoginScreen(
               viewModel: LoginViewModel(
+                repository: context.read(),
+              ),
+            );
+          },
+        ),
+        GoRoute(
+          path: Routes.signup,
+          builder: (context, state) {
+            return SignUpScreen(
+              viewModel: SignUpViewModel(
                 repository: context.read(),
               ),
             );
@@ -52,14 +64,20 @@ Future<String?> _redirect(BuildContext context, GoRouterState state) async {
   final authRepository = context.read<AuthRepository>();
   final loggedIn = authRepository.currentSession() != null;
   final loggingIn = state.matchedLocation == Routes.login;
+  final signingUp = state.matchedLocation == Routes.signup;
 
   if (!loggedIn) {
+    // Se está tentando acessar login ou signup, deixa passar (rotas públicas)
+    if (loggingIn || signingUp) {
+      return null;
+    }
+    // Caso contrário, força para login
     return Routes.login;
   }
 
   // if the user is logged in but still on the login page, send them to
   // the home page
-  if (loggingIn) {
+  if (loggingIn || signingUp) {
     return Routes.home;
   }
 

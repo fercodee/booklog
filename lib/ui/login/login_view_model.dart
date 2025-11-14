@@ -4,7 +4,7 @@ import 'package:logging/logging.dart';
 // Ajuste os imports abaixo conforme sua estrutura (utils/command.dart e utils/result.dart fazem parte da convenção)
 import '../../utils/command.dart';
 import '../../utils/result.dart';
-import '../../data/auth_repository.dart'; // ...existing code...
+import '../../data/repositories/auth/auth_repository.dart';
 
 class LoginViewModel extends ChangeNotifier {
   LoginViewModel({
@@ -12,7 +12,6 @@ class LoginViewModel extends ChangeNotifier {
   }) : _repository = repository {
     // Inicializa os Commands apontando para as ações privadas
     signInCommand = Command0(_signIn);
-    signUpCommand = Command0(_signUp);
     resetPasswordCommand = Command0(_resetPassword);
   }
 
@@ -20,34 +19,37 @@ class LoginViewModel extends ChangeNotifier {
   final _log = Logger('LoginViewModel');
 
   // Campos públicos usados pela UI antes de executar os Commands
-  String? name;
   String? email;
   String? password;
 
   // Commands públicos
   late Command0<void> signInCommand;
-  late Command0<void> signUpCommand;
   late Command0<void> resetPasswordCommand;
 
-  // Ações privadas (stubs) — TODO: implementar integração com Supabase/AuthRepository
+  // Ações privadas — integração com Supabase/AuthRepository
   Future<Result<void>> _signIn() async {
     try {
-      // TODO: usar _repository para autenticar com email/password
-      return Result.error(Exception('Not implemented'));
-    } catch (e, stack) {
-      _log.severe('Erro em _signIn', e, stack);
-      return Result.error(Exception(e.toString()));
-    } finally {
-      notifyListeners();
-    }
-  }
+      if (email == null || email!.isEmpty) {
+        return Result.error(Exception('Email é obrigatório'));
+      }
+      if (password == null || password!.isEmpty) {
+        return Result.error(Exception('Senha é obrigatória'));
+      }
 
-  Future<Result<void>> _signUp() async {
-    try {
-      // TODO: criar usuário via _repository usando name, email, password
-      return Result.error(Exception('Not implemented'));
-    } catch (e, stack) {
-      _log.severe('Erro em _signUp', e, stack);
+      // Autentica com email/password usando o repositório
+      final result = await _repository.signIn(
+        email: email!,
+        password: password!,
+      );
+
+      if (result is Error<void>) {
+        return result;
+      }
+
+      _log.info('Login realizado com sucesso para: $email');
+      return const Result.ok(null);
+    } catch (e, st) {
+      _log.severe('Erro em _signIn', e, st);
       return Result.error(Exception(e.toString()));
     } finally {
       notifyListeners();
@@ -56,10 +58,21 @@ class LoginViewModel extends ChangeNotifier {
 
   Future<Result<void>> _resetPassword() async {
     try {
-      // TODO: solicitar reset de senha via _repository usando email
-      return Result.error(Exception('Not implemented'));
-    } catch (e, stack) {
-      _log.severe('Erro em _resetPassword', e, stack);
+      if (email == null || email!.isEmpty) {
+        return Result.error(Exception('Email é obrigatório'));
+      }
+
+      // Solicita reset de senha via _repository
+      final result = await _repository.resetPassword(email: email!);
+
+      if (result is Error<void>) {
+        return result;
+      }
+
+      _log.info('Email de recuperação enviado para: $email');
+      return const Result.ok(null);
+    } catch (e, st) {
+      _log.severe('Erro em _resetPassword', e, st);
       return Result.error(Exception(e.toString()));
     } finally {
       notifyListeners();

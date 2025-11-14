@@ -1,5 +1,6 @@
 import 'package:book_log/configs/dependencies.dart';
 import 'package:book_log/routing/router.dart';
+import 'package:book_log/ui/core/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -26,9 +27,7 @@ class MyApp extends StatelessWidget {
         builder: (context) {
           return MaterialApp.router(
             title: 'Book Log',
-            theme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-            ),
+            theme: AppTheme.lightTheme,
             routerConfig: router(context.read()),
           );
         },

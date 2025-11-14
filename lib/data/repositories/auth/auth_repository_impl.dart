@@ -1,10 +1,10 @@
 import 'package:logging/logging.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../domain/models/user_model.dart';
-import '../../domain/models/session_model.dart';
-import '../services/api/supabase_client.dart';
+import '../../../domain/models/user_model.dart';
+import '../../../domain/models/session_model.dart';
+import '../../services/api/supabase_client.dart';
 
-import '../../utils/result.dart';
+import '../../../utils/result.dart';
 import 'auth_repository.dart';
 
 class SupabaseAuthRepository extends AuthRepository {
@@ -36,7 +36,16 @@ class SupabaseAuthRepository extends AuthRepository {
   Future<Result<void>> signUp({required String name, required String email, required String password}) async {
     try {
       // supabase_flutter: signUp takes email, password and optional userMetadata via 'data'
-      await _service.signUp(email: email, password: password, data: {'name': name});
+      final res = await _service.signUp(
+        email: email,
+        password: password,
+        data: {'name': name},
+      );
+
+      // Se houver sessão (email confirmation desabilitado), notifica
+      if (res.session != null) {
+        notifyListeners();
+      }
 
       // If using email confirmation, user/session may be null; treat creation as success.
       return const Result.ok(null);

@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
-import '../../utils/result.dart';
-import '../../domain/models/user_model.dart';
-import '../../domain/models/session_model.dart';
+import '../../../utils/result.dart';
+import '../../../domain/models/user_model.dart';
+import '../../../domain/models/session_model.dart';
 
 /// Abstração para autenticação. Implementações podem usar Supabase, mocks, etc.
 /// Estende [ChangeNotifier] para permitir redirecionamento automático no GoRouter.
