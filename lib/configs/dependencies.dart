@@ -3,6 +3,8 @@ import 'package:provider/single_child_widget.dart';
 
 import '../data/repositories/auth/auth_repository.dart';
 import '../data/repositories/auth/auth_repository_impl.dart';
+import '../data/repositories/book/book_repository.dart';
+import '../data/repositories/book/book_repository_impl.dart';
 import '../data/services/api/supabase_client.dart';
 
 /// Configure dependencies for remote data.
@@ -17,6 +19,11 @@ List<SingleChildWidget> get providersRemote {
     // Repositories
     ChangeNotifierProvider<AuthRepository>(
       create: (context) => SupabaseAuthRepository(
+        clientService: context.read(),
+      ),
+    ),
+    Provider<BookRepository>(
+      create: (context) => SupabaseBookRepository(
         clientService: context.read(),
       ),
     ),

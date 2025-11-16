@@ -3,10 +3,12 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../data/repositories/auth/auth_repository.dart';
-import '../../ui/login/login_screen.dart';
-import '../../ui/login/login_view_model.dart';
-import '../../ui/signup/signup_screen.dart';
-import '../../ui/signup/signup_view_model.dart';
+import '../ui/login/login_screen.dart';
+import '../ui/login/login_view_model.dart';
+import '../ui/signup/signup_screen.dart';
+import '../ui/signup/signup_view_model.dart';
+import '../ui/home/home_screen.dart';
+import '../ui/home/home_view_model.dart';
 import 'routes.dart';
 
 /// Top go_router entry point.
@@ -42,13 +44,9 @@ GoRouter router(AuthRepository authRepository) => GoRouter(
         GoRoute(
           path: Routes.home,
           builder: (context, state) {
-            // TODO: Implement HomeScreen
-            return Scaffold(
-              appBar: AppBar(
-                title: const Text('Home'),
-              ),
-              body: const Center(
-                child: Text('Home Screen - Coming Soon'),
+            return HomeScreen(
+              viewModel: HomeViewModel(
+                repository: context.read(),
               ),
             );
           },
