@@ -66,7 +66,10 @@ class _HomeScreenState extends State<HomeScreen> {
     if (cmd.error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text((cmd.result as dynamic).error?.toString() ?? 'Erro ao carregar livros'),
+          content: Text(
+            (cmd.result as dynamic).error?.toString() ??
+                'Erro ao carregar livros',
+          ),
           backgroundColor: AppColors.error,
         ),
       );
@@ -78,7 +81,10 @@ class _HomeScreenState extends State<HomeScreen> {
     if (cmd.error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text((cmd.result as dynamic).error?.toString() ?? 'Erro ao carregar estatísticas'),
+          content: Text(
+            (cmd.result as dynamic).error?.toString() ??
+                'Erro ao carregar estatísticas',
+          ),
           backgroundColor: AppColors.error,
         ),
       );
@@ -90,7 +96,10 @@ class _HomeScreenState extends State<HomeScreen> {
     if (cmd.error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text((cmd.result as dynamic).error?.toString() ?? 'Erro ao deletar livro'),
+          content: Text(
+            (cmd.result as dynamic).error?.toString() ??
+                'Erro ao deletar livro',
+          ),
           backgroundColor: AppColors.error,
         ),
       );
@@ -120,9 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
               widget.viewModel.deleteBook(bookId);
               Navigator.pop(context);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             child: const Text('Deletar'),
           ),
         ],
@@ -136,10 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Minha Biblioteca'),
-            SizedBox(height: 8),
-          ],
+          children: [Text('Minha Biblioteca'), SizedBox(height: 8)],
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(50),
@@ -203,7 +207,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     value: _selectedStatus ?? 'Todos os Status',
                                     isExpanded: true,
                                     underline: const SizedBox(),
-                                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                    ),
                                     items: [
                                       const DropdownMenuItem(
                                         value: 'Todos os Status',
@@ -241,7 +247,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     value: _selectedGenre ?? 'Todos os Gêneros',
                                     isExpanded: true,
                                     underline: const SizedBox(),
-                                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                    ),
                                     items: [
                                       const DropdownMenuItem(
                                         value: 'Todos os Gêneros',
@@ -284,7 +292,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   )
                 else
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     child: ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -335,165 +346,160 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBookCard(BuildContext context, final book) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Capa do livro
-            Container(
-              width: 80,
-              height: 120,
-              decoration: BoxDecoration(
-                color: AppColors.gray100,
-                borderRadius: BorderRadius.circular(4),
+    return GestureDetector(
+      onTap: () async {
+        if (context.mounted) {
+          final result = await context.push(
+            Routes.bookEdit,
+            extra: book,
+          );
+          if (result == true) {
+            widget.viewModel.loadBooks();
+            widget.viewModel.loadStats();
+          }
+        }
+      },
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 12),
+        elevation: 1,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Capa do livro
+              Container(
+                width: 80,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: AppColors.gray100,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: book.coverUrl != null && book.coverUrl!.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: Image.network(
+                          book.coverUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Center(
+                              child: Icon(
+                                Icons.book,
+                                color: AppColors.gray500,
+                                size: 40,
+                              ),
+                            );
+                          },
+                        ),
+                      )
+                    : Center(
+                        child: Icon(
+                          Icons.book,
+                          color: AppColors.gray500,
+                          size: 40,
+                        ),
+                      ),
               ),
-              child: book.coverUrl != null && book.coverUrl!.isNotEmpty
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: Image.network(
-                        book.coverUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Center(
-                            child: Icon(
-                              Icons.book,
-                              color: AppColors.gray500,
-                              size: 40,
-                            ),
-                          );
-                        },
-                      ),
-                    )
-                  : Center(
-                      child: Icon(
-                        Icons.book,
-                        color: AppColors.gray500,
-                        size: 40,
-                      ),
+              const SizedBox(width: 12),
+              // Informações do livro
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                book.title,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'por ${book.author ?? 'Autor desconhecido'}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.gray700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Botão de deletar
+                        GestureDetector(
+                          onTap: () {
+                            _showDeleteConfirmation(book.id, book.title);
+                          },
+                          child: Icon(
+                            Icons.delete,
+                            size: 20,
+                            color: AppColors.error,
+                          ),
+                        ),
+                      ],
                     ),
-            ),
-            const SizedBox(width: 12),
-            // Informações do livro
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              book.title,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                    const SizedBox(height: 8),
+                    // Badges de gênero e status
+                    Row(
+                      children: [
+                        if (book.genre != null && book.genre!.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.gray200,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              book.genre!,
                               style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 11,
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'por ${book.author ?? 'Autor desconhecido'}',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.gray700,
+                          ),
+                        const SizedBox(width: 8),
+                        if (book.status != null && book.status!.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: book.status == 'lido'
+                                  ? AppColors.success
+                                  : AppColors.warning,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              book.status!,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textOnPrimary,
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                      // Botões de ação
-                      PopupMenuButton(
-                        itemBuilder: (context) => [
-                          PopupMenuItem(
-                            child: const Row(
-                              children: [
-                                Icon(Icons.edit, size: 18),
-                                SizedBox(width: 8),
-                                Text('Editar'),
-                              ],
-                            ),
-                            onTap: () async {
-                              // Aguarda um frame para evitar erro de contexto no PopupMenu
-                              await Future.delayed(Duration.zero);
-                              if (context.mounted) {
-                                final result = await context.push(Routes.bookEdit, extra: book);
-                                if (result == true) {
-                                  widget.viewModel.loadBooks();
-                                  widget.viewModel.loadStats();
-                                }
-                              }
-                            },
                           ),
-                          PopupMenuItem(
-                            child: const Row(
-                              children: [
-                                Icon(Icons.delete, size: 18, color: AppColors.error),
-                                SizedBox(width: 8),
-                                Text('Deletar', style: TextStyle(color: AppColors.error)),
-                              ],
-                            ),
-                            onTap: () {
-                              _showDeleteConfirmation(book.id, book.title);
-                            },
-                          ),
-                        ],
-                        child: const Icon(Icons.more_vert),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  // Badges de gênero e status
-                  Row(
-                    children: [
-                      if (book.genre != null && book.genre!.isNotEmpty)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.gray200,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            book.genre!,
-                            style: const TextStyle(fontSize: 11),
-                          ),
-                        ),
-                      const SizedBox(width: 8),
-                      if (book.status != null && book.status!.isNotEmpty)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: book.status == 'lido'
-                                ? AppColors.success
-                                : AppColors.warning,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            book.status!,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: AppColors.textOnPrimary,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
