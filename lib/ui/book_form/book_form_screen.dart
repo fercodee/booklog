@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../ui/core/colors.dart';
 import 'book_form_view_model.dart';
@@ -65,7 +66,7 @@ class _BookFormScreenState extends State<BookFormScreen> {
         ),
       );
       // Retorna true para indicar que precisa recarregar a lista
-      Navigator.pop(context, true);
+      context.pop(true);
     }
   }
 
