@@ -103,7 +103,7 @@ class SupabaseBookRepository extends BookRepository {
         'genre': genre,
         'status': status ?? 'não lido',
         'rating': rating ?? 0,
-        'cover_url': coverUrl,
+        'coverUrl': coverUrl,
         'notes': notes,
         'user_id': userId, // <- importante para passar RLS
       }).select().single();
@@ -143,7 +143,7 @@ class SupabaseBookRepository extends BookRepository {
       if (genre != null) updateData['genre'] = genre;
       if (status != null) updateData['status'] = status;
       if (rating != null) updateData['rating'] = rating;
-      if (coverUrl != null) updateData['cover_url'] = coverUrl;
+      if (coverUrl != null) updateData['coverUrl'] = coverUrl;
       if (notes != null) updateData['notes'] = notes;
 
       final data = await _service.client
