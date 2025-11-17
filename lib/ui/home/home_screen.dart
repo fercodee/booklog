@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../routing/routes.dart';
 import '../../ui/core/colors.dart';
 import 'home_view_model.dart';
 
@@ -171,26 +173,32 @@ class _HomeScreenState extends State<HomeScreen> {
                                 color: AppColors.gray100,
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: DropdownButton<String>(
-                                value: _selectedStatus ?? 'Todos os Status',
-                                isExpanded: true,
-                                underline: const SizedBox(),
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
-                                items: [
-                                  const DropdownMenuItem(
-                                    value: 'Todos os Status',
-                                    child: Text('Todos os Status'),
-                                  ),
-                                  ...widget.viewModel.getUniqueStatuses().map(
-                                    (status) => DropdownMenuItem(
-                                      value: status,
-                                      child: Text(status),
-                                    ),
-                                  ),
-                                ],
-                                onChanged: (value) {
-                                  setState(() => _selectedStatus = value);
-                                  widget.viewModel.setStatusFilter(value);
+                              child: FutureBuilder<List<String>>(
+                                future: widget.viewModel.getUniqueStatuses(),
+                                builder: (context, snapshot) {
+                                  final statuses = snapshot.data ?? [];
+                                  return DropdownButton<String>(
+                                    value: _selectedStatus ?? 'Todos os Status',
+                                    isExpanded: true,
+                                    underline: const SizedBox(),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                                    items: [
+                                      const DropdownMenuItem(
+                                        value: 'Todos os Status',
+                                        child: Text('Todos os Status'),
+                                      ),
+                                      ...statuses.map(
+                                        (status) => DropdownMenuItem(
+                                          value: status,
+                                          child: Text(status),
+                                        ),
+                                      ),
+                                    ],
+                                    onChanged: (value) {
+                                      setState(() => _selectedStatus = value);
+                                      widget.viewModel.setStatusFilter(value);
+                                    },
+                                  );
                                 },
                               ),
                             ),
@@ -203,26 +211,32 @@ class _HomeScreenState extends State<HomeScreen> {
                                 color: AppColors.gray100,
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: DropdownButton<String>(
-                                value: _selectedGenre ?? 'Todos os Gêneros',
-                                isExpanded: true,
-                                underline: const SizedBox(),
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
-                                items: [
-                                  const DropdownMenuItem(
-                                    value: 'Todos os Gêneros',
-                                    child: Text('Todos os Gêneros'),
-                                  ),
-                                  ...widget.viewModel.getUniqueGenres().map(
-                                    (genre) => DropdownMenuItem(
-                                      value: genre,
-                                      child: Text(genre),
-                                    ),
-                                  ),
-                                ],
-                                onChanged: (value) {
-                                  setState(() => _selectedGenre = value);
-                                  widget.viewModel.setGenreFilter(value);
+                              child: FutureBuilder<List<String>>(
+                                future: widget.viewModel.getUniqueGenres(),
+                                builder: (context, snapshot) {
+                                  final genres = snapshot.data ?? [];
+                                  return DropdownButton<String>(
+                                    value: _selectedGenre ?? 'Todos os Gêneros',
+                                    isExpanded: true,
+                                    underline: const SizedBox(),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                                    items: [
+                                      const DropdownMenuItem(
+                                        value: 'Todos os Gêneros',
+                                        child: Text('Todos os Gêneros'),
+                                      ),
+                                      ...genres.map(
+                                        (genre) => DropdownMenuItem(
+                                          value: genre,
+                                          child: Text(genre),
+                                        ),
+                                      ),
+                                    ],
+                                    onChanged: (value) {
+                                      setState(() => _selectedGenre = value);
+                                      widget.viewModel.setGenreFilter(value);
+                                    },
+                                  );
                                 },
                               ),
                             ),
@@ -265,11 +279,12 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Navegar para tela de adicionar livro
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Adicionar novo livro')),
-          );
+        onPressed: () async {
+          final result = await context.push(Routes.bookNew);
+          if (result == true) {
+            widget.viewModel.loadBooks();
+            widget.viewModel.loadStats();
+          }
         },
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add),
@@ -386,11 +401,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Text('Editar'),
                               ],
                             ),
-                            onTap: () {
-                              // TODO: Navegar para edição
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Editar: ${book.title}')),
-                              );
+                            onTap: () async {
+                              // Aguarda um frame para evitar erro de contexto no PopupMenu
+                              await Future.delayed(Duration.zero);
+                              if (context.mounted) {
+                                final result = await context.push(Routes.bookEdit, extra: book);
+                                if (result == true) {
+                                  widget.viewModel.loadBooks();
+                                  widget.viewModel.loadStats();
+                                }
+                              }
                             },
                           ),
                           PopupMenuItem(

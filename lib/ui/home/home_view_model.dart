@@ -47,7 +47,7 @@ class HomeViewModel extends ChangeNotifier {
     } else {
       _selectedStatus = status;
     }
-    _applyFilters();
+    loadBooks();
   }
 
   void setGenreFilter(String? genre) {
@@ -56,22 +56,25 @@ class HomeViewModel extends ChangeNotifier {
     } else {
       _selectedGenre = genre;
     }
-    _applyFilters();
+    loadBooks();
   }
 
   // Private methods
   Future<Result<void>> _loadBooks() async {
     try {
-      final result = await _repository.listBooks();
+      final result = await _repository.listBooks(
+        status: _selectedStatus,
+        genre: _selectedGenre,
+      );
 
       if (result is Error<List<BookModel>>) {
         return result;
       }
 
       _books = (result as Ok<List<BookModel>>).value;
-      _applyFilters();
+      _filteredBooks = _books;
 
-      _log.info('Loaded ${_books.length} books');
+      _log.info('Loaded ${_books.length} books with filters: status=$_selectedStatus, genre=$_selectedGenre');
       return const Result.ok(null);
     } catch (e, st) {
       _log.severe('Erro ao carregar livros', e, st);
@@ -116,11 +119,8 @@ class HomeViewModel extends ChangeNotifier {
         return result;
       }
 
-      // Remove from local list
-      _books.removeWhere((book) => book.id == _bookToDelete);
-      _applyFilters();
-
-      // Reload stats
+      // Reload books and stats
+      await _loadBooks();
       await _loadStats();
 
       _log.info('Book deleted: $_bookToDelete');
@@ -132,15 +132,6 @@ class HomeViewModel extends ChangeNotifier {
       _bookToDelete = null;
       notifyListeners();
     }
-  }
-
-  void _applyFilters() {
-    _filteredBooks = _books.where((book) {
-      final statusMatch = _selectedStatus == null || book.status == _selectedStatus;
-      final genreMatch = _selectedGenre == null || book.genre == _selectedGenre;
-      return statusMatch && genreMatch;
-    }).toList();
-    notifyListeners();
   }
 
   // Public methods para chamar os commands
@@ -157,25 +148,45 @@ class HomeViewModel extends ChangeNotifier {
     deleteBookCommand.execute();
   }
 
-  // Get unique genres from books
-  List<String> getUniqueGenres() {
-    final genres = <String>{};
-    for (final book in _books) {
-      if (book.genre != null && book.genre!.isNotEmpty) {
-        genres.add(book.genre!);
+  // Get unique genres from ALL books (without filters)
+  Future<List<String>> getUniqueGenres() async {
+    try {
+      final result = await _repository.listBooks();
+      if (result is Ok<List<BookModel>>) {
+        final allBooks = result.value;
+        final genres = <String>{};
+        for (final book in allBooks) {
+          if (book.genre != null && book.genre!.isNotEmpty) {
+            genres.add(book.genre!);
+          }
+        }
+        return genres.toList()..sort();
       }
+      return [];
+    } catch (e) {
+      _log.warning('Erro ao buscar gêneros únicos', e);
+      return [];
     }
-    return genres.toList()..sort();
   }
 
-  // Get unique statuses from books
-  List<String> getUniqueStatuses() {
-    final statuses = <String>{};
-    for (final book in _books) {
-      if (book.status != null && book.status!.isNotEmpty) {
-        statuses.add(book.status!);
+  // Get unique statuses from ALL books (without filters)
+  Future<List<String>> getUniqueStatuses() async {
+    try {
+      final result = await _repository.listBooks();
+      if (result is Ok<List<BookModel>>) {
+        final allBooks = result.value;
+        final statuses = <String>{};
+        for (final book in allBooks) {
+          if (book.status != null && book.status!.isNotEmpty) {
+            statuses.add(book.status!);
+          }
+        }
+        return statuses.toList()..sort();
       }
+      return [];
+    } catch (e) {
+      _log.warning('Erro ao buscar status únicos', e);
+      return [];
     }
-    return statuses.toList()..sort();
   }
 }

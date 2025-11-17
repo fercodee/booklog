@@ -3,12 +3,15 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../data/repositories/auth/auth_repository.dart';
+import '../domain/models/book_model.dart';
 import '../ui/login/login_screen.dart';
 import '../ui/login/login_view_model.dart';
 import '../ui/signup/signup_screen.dart';
 import '../ui/signup/signup_view_model.dart';
 import '../ui/home/home_screen.dart';
 import '../ui/home/home_view_model.dart';
+import '../ui/book_form/book_form_screen.dart';
+import '../ui/book_form/book_form_view_model.dart';
 import 'routes.dart';
 
 /// Top go_router entry point.
@@ -47,6 +50,28 @@ GoRouter router(AuthRepository authRepository) => GoRouter(
             return HomeScreen(
               viewModel: HomeViewModel(
                 repository: context.read(),
+              ),
+            );
+          },
+        ),
+        GoRoute(
+          path: Routes.bookNew,
+          builder: (context, state) {
+            return BookFormScreen(
+              viewModel: BookFormViewModel(
+                repository: context.read(),
+              ),
+            );
+          },
+        ),
+        GoRoute(
+          path: Routes.bookEdit,
+          builder: (context, state) {
+            final book = state.extra as BookModel;
+            return BookFormScreen(
+              viewModel: BookFormViewModel(
+                repository: context.read(),
+                book: book,
               ),
             );
           },
