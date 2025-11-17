@@ -21,21 +21,43 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Carrega livros e estatísticas
-    widget.viewModel.loadBooks();
-    widget.viewModel.loadStats();
+    _setupListeners();
+    _loadData();
+  }
 
+  @override
+  void didUpdateWidget(HomeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Se o viewModel mudou, atualiza listeners e recarrega dados
+    if (oldWidget.viewModel != widget.viewModel) {
+      _removeListeners(oldWidget);
+      _setupListeners();
+      _loadData();
+    }
+  }
+
+  void _setupListeners() {
     // Listeners para commands
     widget.viewModel.loadBooksCommand.addListener(_onBooksLoaded);
     widget.viewModel.deleteBookCommand.addListener(_onBookDeleted);
     widget.viewModel.loadStatsCommand.addListener(_onStatsLoaded);
   }
 
+  void _removeListeners(HomeScreen screen) {
+    screen.viewModel.loadBooksCommand.removeListener(_onBooksLoaded);
+    screen.viewModel.deleteBookCommand.removeListener(_onBookDeleted);
+    screen.viewModel.loadStatsCommand.removeListener(_onStatsLoaded);
+  }
+
+  void _loadData() {
+    // Carrega livros e estatísticas
+    widget.viewModel.loadBooks();
+    widget.viewModel.loadStats();
+  }
+
   @override
   void dispose() {
-    widget.viewModel.loadBooksCommand.removeListener(_onBooksLoaded);
-    widget.viewModel.deleteBookCommand.removeListener(_onBookDeleted);
-    widget.viewModel.loadStatsCommand.removeListener(_onStatsLoaded);
+    _removeListeners(widget);
     super.dispose();
   }
 
@@ -280,10 +302,12 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final result = await context.push(Routes.bookNew);
-          if (result == true) {
-            widget.viewModel.loadBooks();
-            widget.viewModel.loadStats();
+          if (mounted) {
+            final result = await context.push(Routes.bookNew);
+            if (mounted && result == true) {
+              widget.viewModel.loadBooks();
+              widget.viewModel.loadStats();
+            }
           }
         },
         backgroundColor: AppColors.primary,
