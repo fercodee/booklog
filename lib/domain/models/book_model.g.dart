@@ -8,7 +8,7 @@ part of 'book_model.dart';
 
 _BookModel _$BookModelFromJson(Map<String, dynamic> json) => _BookModel(
   id: (json['id'] as num).toInt(),
-  userId: json['userId'] as String,
+  userId: json['userId'] as String?,
   title: json['title'] as String,
   author: json['author'] as String?,
   genre: json['genre'] as String?,

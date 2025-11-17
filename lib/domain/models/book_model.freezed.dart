@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$BookModel {
 
- int get id; String get userId; String get title; String? get author; String? get genre; String? get status;// 'lido' ou 'não lido'
+ int get id; String? get userId; String get title; String? get author; String? get genre; String? get status;// 'lido' ou 'não lido'
  int? get rating;// 0-5
  String? get coverUrl; String? get notes; DateTime? get createdAt; DateTime? get updatedAt;
 /// Create a copy of BookModel
@@ -50,7 +50,7 @@ abstract mixin class $BookModelCopyWith<$Res>  {
   factory $BookModelCopyWith(BookModel value, $Res Function(BookModel) _then) = _$BookModelCopyWithImpl;
 @useResult
 $Res call({
- int id, String userId, String title, String? author, String? genre, String? status, int? rating, String? coverUrl, String? notes, DateTime? createdAt, DateTime? updatedAt
+ int id, String? userId, String title, String? author, String? genre, String? status, int? rating, String? coverUrl, String? notes, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -67,11 +67,11 @@ class _$BookModelCopyWithImpl<$Res>
 
 /// Create a copy of BookModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? title = null,Object? author = freezed,Object? genre = freezed,Object? status = freezed,Object? rating = freezed,Object? coverUrl = freezed,Object? notes = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = freezed,Object? title = null,Object? author = freezed,Object? genre = freezed,Object? status = freezed,Object? rating = freezed,Object? coverUrl = freezed,Object? notes = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
-as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as int,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
+as String?,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,author: freezed == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
 as String?,genre: freezed == genre ? _self.genre : genre // ignore: cast_nullable_to_non_nullable
 as String?,status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
@@ -165,7 +165,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String userId,  String title,  String? author,  String? genre,  String? status,  int? rating,  String? coverUrl,  String? notes,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String? userId,  String title,  String? author,  String? genre,  String? status,  int? rating,  String? coverUrl,  String? notes,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BookModel() when $default != null:
 return $default(_that.id,_that.userId,_that.title,_that.author,_that.genre,_that.status,_that.rating,_that.coverUrl,_that.notes,_that.createdAt,_that.updatedAt);case _:
@@ -186,7 +186,7 @@ return $default(_that.id,_that.userId,_that.title,_that.author,_that.genre,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String userId,  String title,  String? author,  String? genre,  String? status,  int? rating,  String? coverUrl,  String? notes,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String? userId,  String title,  String? author,  String? genre,  String? status,  int? rating,  String? coverUrl,  String? notes,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _BookModel():
 return $default(_that.id,_that.userId,_that.title,_that.author,_that.genre,_that.status,_that.rating,_that.coverUrl,_that.notes,_that.createdAt,_that.updatedAt);case _:
@@ -206,7 +206,7 @@ return $default(_that.id,_that.userId,_that.title,_that.author,_that.genre,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String userId,  String title,  String? author,  String? genre,  String? status,  int? rating,  String? coverUrl,  String? notes,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String? userId,  String title,  String? author,  String? genre,  String? status,  int? rating,  String? coverUrl,  String? notes,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _BookModel() when $default != null:
 return $default(_that.id,_that.userId,_that.title,_that.author,_that.genre,_that.status,_that.rating,_that.coverUrl,_that.notes,_that.createdAt,_that.updatedAt);case _:
@@ -221,11 +221,11 @@ return $default(_that.id,_that.userId,_that.title,_that.author,_that.genre,_that
 @JsonSerializable()
 
 class _BookModel implements BookModel {
-  const _BookModel({required this.id, required this.userId, required this.title, this.author, this.genre, this.status, this.rating, this.coverUrl, this.notes, this.createdAt, this.updatedAt});
+  const _BookModel({required this.id, this.userId, required this.title, this.author, this.genre, this.status, this.rating, this.coverUrl, this.notes, this.createdAt, this.updatedAt});
   factory _BookModel.fromJson(Map<String, dynamic> json) => _$BookModelFromJson(json);
 
 @override final  int id;
-@override final  String userId;
+@override final  String? userId;
 @override final  String title;
 @override final  String? author;
 @override final  String? genre;
@@ -271,7 +271,7 @@ abstract mixin class _$BookModelCopyWith<$Res> implements $BookModelCopyWith<$Re
   factory _$BookModelCopyWith(_BookModel value, $Res Function(_BookModel) _then) = __$BookModelCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String userId, String title, String? author, String? genre, String? status, int? rating, String? coverUrl, String? notes, DateTime? createdAt, DateTime? updatedAt
+ int id, String? userId, String title, String? author, String? genre, String? status, int? rating, String? coverUrl, String? notes, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -288,11 +288,11 @@ class __$BookModelCopyWithImpl<$Res>
 
 /// Create a copy of BookModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? title = null,Object? author = freezed,Object? genre = freezed,Object? status = freezed,Object? rating = freezed,Object? coverUrl = freezed,Object? notes = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = freezed,Object? title = null,Object? author = freezed,Object? genre = freezed,Object? status = freezed,Object? rating = freezed,Object? coverUrl = freezed,Object? notes = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_BookModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
-as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as int,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
+as String?,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,author: freezed == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
 as String?,genre: freezed == genre ? _self.genre : genre // ignore: cast_nullable_to_non_nullable
 as String?,status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable

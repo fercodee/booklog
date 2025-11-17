@@ -13,13 +13,24 @@ class SupabaseBookRepository extends BookRepository {
   final SupabaseClientService _service;
   final _log = Logger('SupabaseBookRepository');
 
+  // Helper para obter userId ou retornar erro
+  String? _currentUserId() {
+    final user = _service.client.auth.currentUser;
+    return user?.id;
+  }
+
   @override
   Future<Result<List<BookModel>>> listBooks({
     String? status,
     String? genre,
   }) async {
     try {
-      var query = _service.client.from('books').select();
+      final userId = _currentUserId();
+      if (userId == null) {
+        return Result.error(Exception('Usuário não autenticado'));
+      }
+
+      var query = _service.client.from('books').select().eq('user_id', userId);
 
       if (status != null && status.isNotEmpty) {
         query = query.eq('status', status);
@@ -47,10 +58,16 @@ class SupabaseBookRepository extends BookRepository {
   @override
   Future<Result<BookModel>> getBook(int bookId) async {
     try {
+      final userId = _currentUserId();
+      if (userId == null) {
+        return Result.error(Exception('Usuário não autenticado'));
+      }
+
       final data = await _service.client
           .from('books')
           .select()
           .eq('id', bookId)
+          .eq('user_id', userId)
           .single();
 
       final book = BookModel.fromJson(data);
@@ -75,6 +92,11 @@ class SupabaseBookRepository extends BookRepository {
     String? notes,
   }) async {
     try {
+      final userId = _currentUserId();
+      if (userId == null) {
+        return Result.error(Exception('Usuário não autenticado'));
+      }
+
       final data = await _service.client.from('books').insert({
         'title': title,
         'author': author,
@@ -83,6 +105,7 @@ class SupabaseBookRepository extends BookRepository {
         'rating': rating ?? 0,
         'cover_url': coverUrl,
         'notes': notes,
+        'user_id': userId, // <- importante para passar RLS
       }).select().single();
 
       final book = BookModel.fromJson(data);
@@ -109,6 +132,11 @@ class SupabaseBookRepository extends BookRepository {
     String? notes,
   }) async {
     try {
+      final userId = _currentUserId();
+      if (userId == null) {
+        return Result.error(Exception('Usuário não autenticado'));
+      }
+
       final updateData = <String, dynamic>{};
       if (title != null) updateData['title'] = title;
       if (author != null) updateData['author'] = author;
@@ -122,6 +150,7 @@ class SupabaseBookRepository extends BookRepository {
           .from('books')
           .update(updateData)
           .eq('id', bookId)
+          .eq('user_id', userId) // garante que só atualiza livro do usuário
           .select()
           .single();
 
@@ -140,7 +169,16 @@ class SupabaseBookRepository extends BookRepository {
   @override
   Future<Result<void>> deleteBook(int bookId) async {
     try {
-      await _service.client.from('books').delete().eq('id', bookId);
+      final userId = _currentUserId();
+      if (userId == null) {
+        return Result.error(Exception('Usuário não autenticado'));
+      }
+
+      await _service.client
+          .from('books')
+          .delete()
+          .eq('id', bookId)
+          .eq('user_id', userId); // garante que só deleta livro do usuário
       _log.info('Book deleted: $bookId');
       return const Result.ok(null);
     } on PostgrestException catch (e, st) {
@@ -155,7 +193,15 @@ class SupabaseBookRepository extends BookRepository {
   @override
   Future<Result<({int total, int read, int unread})>> getBookStats() async {
     try {
-      final books = await _service.client.from('books').select('status');
+      final userId = _currentUserId();
+      if (userId == null) {
+        return Result.error(Exception('Usuário não autenticado'));
+      }
+
+      final books = await _service.client
+          .from('books')
+          .select('status')
+          .eq('user_id', userId);
 
       int total = books.length;
       int read = 0;

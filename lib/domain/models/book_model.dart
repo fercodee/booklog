@@ -7,7 +7,7 @@ part 'book_model.g.dart';
 abstract class BookModel with _$BookModel {
   const factory BookModel({
     required int id,
-    required String userId,
+    String? userId,
     required String title,
     String? author,
     String? genre,
